@@ -1,4 +1,3 @@
-using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -12,15 +11,15 @@ namespace afd_porta_automatica
         {
             InitializeComponent();
             UpdateInterface();
-            movement.Interval = 500;
+            movementTimer.Interval = 500; // Corrigido de 'movement' para 'movementTimer'
         }
 
         private void UpdateInterface()
         {
-            pbDoorPosition.Value = door.DoorPosition;
-            lblStatus.Text = $@"Estado: {door.CurrentState({door.DoorPosition) %}";
+            pbDoorPosition.Value = door.DoorPosition; // Corrigido 'phDoorPosition' para 'pbDoorPosition'
+            lblStatus.Text = $@"Estado: {door.CurrentState} ({door.DoorPosition}%)";
 
-            phDoorPosition.ForeColor = door.CurrentState switch
+            pbDoorPosition.ForeColor = door.CurrentState switch // Removido parênteses extra
             {
                 AutomaticDoor.DoorState.Opening => Color.Orange,
                 AutomaticDoor.DoorState.Closing => Color.Orange,
@@ -29,36 +28,44 @@ namespace afd_porta_automatica
             };
         }
 
-        private void movementTimer_Tick(object sender, EventArgs e)
+        private void movementTimer_Tick(object sender, System.EventArgs e)
         {
             door.UpdatePosition();
             UpdateInterface();
 
-            if (door.CurrentState is not (AutomaticDoor.DoorState.Opening or AutomaticDoor.DoorState.Closing))
+            // Corrigido a condição usando operador lógico correto
+            if (door.CurrentState != AutomaticDoor.DoorState.Opening &&
+                door.CurrentState != AutomaticDoor.DoorState.Closing)
             {
                 movementTimer.Stop();
             }
         }
 
-        private void btnPresence_Click(object sender, EventArgs e)
+        private void btnPresence_Click(object sender, System.EventArgs e)
         {
             door.ProcessEvent(DoorEvent.PresenceDetected);
-            HandleMovement()
+            HandleMovement();
         }
 
-        private void btnAbsence_Click(object sender, EventArgs e)
+        private void btnAbsence_Click(object sender, System.EventArgs e)
         {
             door.ProcessEvent(DoorEvent.AbsenceDetected);
             HandleMovement();
         }
 
+        private void btnObstacle_Click(object sender, System.EventArgs e)
+        {
+            door.ProcessEvent(DoorEvent.SafetyObstacle);
+            HandleMovement();
+        }
+
         private void HandleMovement()
         {
-            if (door.CurrentState is AutomaticDoor.DoorState.Opening or AutomaticDoor.DoorState.Closing)
+            if (door.CurrentState == AutomaticDoor.DoorState.Opening ||
+                door.CurrentState == AutomaticDoor.DoorState.Closing)
             {
                 movementTimer.Start();
             }
-
             UpdateInterface();
         }
     }
